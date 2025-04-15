@@ -1,0 +1,27 @@
+{
+  "name": "stamp2cost",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ts-node esbuild.ts",
+    "push": "clasp push",
+    "open": "clasp open",
+    "deploy": "pnpm run build && clasp push && clasp deploy -i AKfycbzIxlRk5m_4EKuK5YjKURyL-cvY3KXNsx3oWjTuJHSAxgQMI99jiQyXJb6N-jTggilG"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.14.4+sha256.26a726b633b629a3fabda006f696ae4260954a3632c8054112d7ae89779e5f9a",
+  "devDependencies": {
+    "@google/clasp": "3.0.3-alpha",
+    "@types/google-apps-script": "^1.0.97",
+    "@types/node": "^22.14.1",
+    "clasp": "^1.0.0",
+    "esbuild": "^0.18.20",
+    "esbuild-gas-plugin": "^0.9.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
