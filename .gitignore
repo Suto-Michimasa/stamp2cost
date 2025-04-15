@@ -1,2 +1,12 @@
-/node_modules
-/dist
+# Build
+dist/
+
+# Node.js
+node_modules/
+#環境設定
+.env
+.env.local
+.env.*.local
+
+# Google Apps Script
+.clasp.json
