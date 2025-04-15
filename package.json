@@ -8,7 +8,8 @@
     "build": "ts-node esbuild.ts",
     "push": "clasp push",
     "open": "clasp open",
-    "deploy": "clasp deploy"
+    "deploy": "clasp deploy",
+    "deploy:all": "pnpm run build && pnpm run push && clasp deploy"
   },
   "keywords": [],
   "author": "",
