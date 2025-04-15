@@ -9,4 +9,4 @@ node_modules/
 .env.*.local
 
 # Google Apps Script
-.clasp.json
+clasp.json
