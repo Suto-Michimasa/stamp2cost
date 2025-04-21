@@ -1,5 +1,15 @@
 const stampId = "syussya";
 
+/**
+ * 日付を YYYY/MM/DD 形式にフォーマットする関数
+ */
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
+}
+
 const properties = PropertiesService.getScriptProperties();
 const targetChannelId = properties.getProperty("TARGET_CHANNEL_ID") || "";
 const spreadsheetId = properties.getProperty("SPREADSHEET_ID") || "";
@@ -67,10 +77,12 @@ function doPost(
   const userId = payload.event.user;
   const messageTs = payload.event.item.ts;
   const channelId = payload.event.item.channel;
-  let originalMessageDate: Date | null = null;
+  let originalMessageDate: string | null = null;
 
   const messageInfo = getMessageInfo(channelId, messageTs, slackToken);
-  originalMessageDate = new Date(parseFloat(messageInfo.ts) * 1000);
+  const date = new Date(parseFloat(messageInfo.ts) * 1000);
+  date.setDate(date.getDate() + 5);
+  originalMessageDate = formatDate(date);
 
   if (channelId !== targetChannelId) {
     return ContentService.createTextOutput("Not target channel");
@@ -102,3 +114,4 @@ function doPost(
 
 global.doPost = doPost;
 global.getMessageInfo = getMessageInfo;
+global.formatDate = formatDate;
