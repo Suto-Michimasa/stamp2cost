@@ -94,8 +94,17 @@ function doPost(
     sheet = ss.insertSheet("出社記録");
     sheet.appendRow(["記録日時", "ユーザID", "送信日時"]);
   }
-  sheet.appendRow([new Date(), userId, originalMessageDate]);
 
+  const data = sheet.getDataRange().getValues();
+  const isDuplicate = data
+    .slice(1)
+    .some((row) => row[1] === userId && row[2] === originalMessageDate);
+
+  if (isDuplicate) {
+    return ContentService.createTextOutput("Already recorded");
+  }
+
+  sheet.appendRow([new Date(), userId, originalMessageDate]);
   return ContentService.createTextOutput("OK");
 }
 
