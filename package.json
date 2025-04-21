@@ -8,7 +8,7 @@
     "push": "clasp push",
     "open": "clasp open",
     "deploy": "clasp deploy",
-    "deploy:all": "pnpm run build && pnpm run push && clasp deploy"
+    "deploy:all": "pnpm run build && pnpm run push && clasp deploy -i AKfycbwj0s9vFZPX4V5U7pEig1NXj3dX_6iu2kYUDWryl6qnBYJAEEPqq7hBY9a3gw5Vn5XY"
   },
   "keywords": [],
   "author": "",

@@ -16,6 +16,40 @@ const spreadsheetId = properties.getProperty("SPREADSHEET_ID") || "";
 const slackToken = properties.getProperty("SLACK_TOKEN") || "";
 
 /**
+ * 処理済みイベントをチェックする関数
+ */
+function isEventProcessed(eventId: string): boolean {
+  const cache = PropertiesService.getScriptProperties();
+  const processedEvents = cache.getProperty("PROCESSED_EVENTS") || "[]";
+  const events = JSON.parse(processedEvents) as string[];
+
+  // 古いイベントを削除（最新の100件のみ保持）
+  if (events.length > 100) {
+    events.splice(0, events.length - 100);
+  }
+
+  return events.includes(eventId);
+}
+
+/**
+ * イベントを処理済みとしてマークする関数
+ */
+function markEventAsProcessed(eventId: string): void {
+  const cache = PropertiesService.getScriptProperties();
+  const processedEvents = cache.getProperty("PROCESSED_EVENTS") || "[]";
+  const events = JSON.parse(processedEvents) as string[];
+
+  events.push(eventId);
+
+  // 古いイベントを削除（最新の100件のみ保持）
+  if (events.length > 100) {
+    events.splice(0, events.length - 100);
+  }
+
+  cache.setProperty("PROCESSED_EVENTS", JSON.stringify(events));
+}
+
+/**
  * Slackからメッセージ情報を取得する関数
  */
 function getMessageInfo(
@@ -49,6 +83,19 @@ function getMessageInfo(
 }
 
 /**
+ * デバッグログをスプレッドシートに記録する関数
+ */
+function logToSheet(label: string, data: any): void {
+  const spreadsheet_debug = SpreadsheetApp.openById(spreadsheetId);
+  let sheet_debug = spreadsheet_debug.getSheetByName("DebugLogs");
+  if (!sheet_debug) {
+    sheet_debug = spreadsheet_debug.insertSheet("DebugLogs");
+    sheet_debug.appendRow(["Timestamp", "Label", "Data"]);
+  }
+  sheet_debug.appendRow([new Date(), label, JSON.stringify(data)]);
+}
+
+/**
  * Slackの:syussya:スタンプを捕捉して、スプレッドシートに記入する関数
  */
 function doPost(
@@ -64,6 +111,12 @@ function doPost(
 
   if (!payload.event) {
     return ContentService.createTextOutput("No event");
+  }
+
+  // イベントIDをチェック
+  const eventId = payload.event_id;
+  if (isEventProcessed(eventId)) {
+    return ContentService.createTextOutput("Already processed");
   }
 
   if (payload.event.type !== "reaction_added") {
@@ -94,33 +147,24 @@ function doPost(
     sheet = ss.insertSheet("出社記録");
     sheet.appendRow(["記録日時", "ユーザID", "送信日時"]);
   }
-
   const data = sheet.getDataRange().getValues();
-  const isDuplicate = data
-    .slice(1)
-    .some((row) => row[1] === userId && row[2] === originalMessageDate);
+  for (let i = 1; i < data.length; i++) {
+    const existingUserId = data[i][1];
+    const existingSendDate = data[i][2];
 
-  if (isDuplicate) {
-    return ContentService.createTextOutput("Already recorded");
+    if (existingUserId === userId && existingSendDate) {
+      const existingDate = new Date(existingSendDate);
+      const formattedExistingDate = formatDate(existingDate);
+
+      if (formattedExistingDate === originalMessageDate) {
+        return ContentService.createTextOutput("Duplicate entry");
+      }
+    }
   }
-
   sheet.appendRow([new Date(), userId, originalMessageDate]);
+  markEventAsProcessed(eventId);
+
   return ContentService.createTextOutput("OK");
 }
 
-/**
- * デバッグログをスプレッドシートに記録する関数
- */
-// function logToSheet(label: string, data: any): void {
-//   const spreadsheet_debug = SpreadsheetApp.openById(spreadsheetId);
-//   let sheet_debug = spreadsheet_debug.getSheetByName("DebugLogs");
-//   if (!sheet_debug) {
-//     sheet_debug = spreadsheet_debug.insertSheet("DebugLogs");
-//     sheet_debug.appendRow(["Timestamp", "Label", "Data"]);
-//   }
-//   sheet_debug.appendRow([new Date(), label, JSON.stringify(data)]);
-// }
-
 global.doPost = doPost;
-global.getMessageInfo = getMessageInfo;
-global.formatDate = formatDate;
